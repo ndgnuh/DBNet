@@ -105,12 +105,16 @@ def sample_to_lmdb(
     proba_maps = [numpy_to_bytes(img) for img in proba_maps]
     thresh_maps = [numpy_to_bytes(img) for img in thresh_maps]
 
+    # Form sample dicts
     sample = {f"image_{idx}": image_bin}
     for i in range(len(proba_maps)):
         pmap = proba_maps[i]
         tmap = thresh_maps[i]
         sample[f"proba_{idx}_{i}"] = pmap
         sample[f"thresh_{idx}_{i}"] = tmap
+
+    # Convert keys to bytes
+    sample = {k.encode(): v for k, v in sample.items()}
     return sample
 
 
@@ -141,7 +145,7 @@ def dataset_to_lmdb(
         str:
             The path to the generated LMDB database.
     """
-    num_samples = len(output_path)
+    num_samples = len(dataset)
 
     # Writing context
     env = lmdb.open(output_path, map_size=map_size)
@@ -169,13 +173,15 @@ def dataset_to_lmdb(
             write_cache(cache)
             cache = []
             cache_count = 0
+        pbar.update()
+
     write_cache(cache)
 
     # Write metadata
     metadata = dict()
     metadata["__len__".encode()] = str(num_samples).encode()
     metadata["__num_classes__".encode()] = str(num_classes).encode()
-    write_cache(metadata)
+    write_cache([metadata])
 
     # Clean up and return the output path
     env.close()
