@@ -68,16 +68,13 @@ class DBNetDataset:
                 txn.get(f"proba_{idx}_{c}".encode()) for c in range(self.num_classes)
             ]
             tmap_bins = [
-                txn.get(f"threshold_{idx}_{c}".encode())
-                for c in range(self.num_classes)
+                txn.get(f"thresh_{idx}_{c}".encode()) for c in range(self.num_classes)
             ]
 
         # Load to tensor
-        image = bytes_to_numpy(image)
-        pmaps = [bytes_to_numpy(img) for img in pmap_bins]
-        tmaps = [bytes_to_numpy(img) for img in tmap_bins]
-        pmaps = np.stack(pmaps, axis=0)
-        tmaps = np.stack(tmaps, axis=0)
+        image = iu.bytes_to_numpy(image)
+        pmaps = [iu.bytes_to_numpy(img) for img in pmap_bins]
+        tmaps = [iu.bytes_to_numpy(img) for img in tmap_bins]
 
         # Transformation if any
         if self.transform is not None:
@@ -86,15 +83,16 @@ class DBNetDataset:
         # image: H W C -> C H W
         # stack proba maps and threshold maps
         image = np.transpose(image, (2, 0, 1))
-        pmaps = np.stack(pmaps, dim=0)
-        tmaps = np.stack(tmaps, dim=0)
+        pmaps = np.stack(pmaps, axis=0)
+        tmaps = np.stack(tmaps, axis=0)
         return image, pmaps, tmaps
 
     def visualize(self):
         from matplotlib import pyplot as plt
 
-        for i in range(self):
+        for i in range(len(self)):
             image, pmaps, tmaps = self[i]
+            image = image.transpose((1, 2, 0))
             print(f"sample {i}")
             fig = self.visualize_sample(image, pmaps, tmaps)
             plt.show()

@@ -1,6 +1,23 @@
 from typing import List, Tuple
 
 
+def xyxy2polygon(box: Tuple[float, float, float, float]) -> List[Tuple[float, float]]:
+    """Convert a bounding box in the format (xmin, ymin, xmax, ymax)
+    to a polygon represented by a list of (x, y) coordinates.
+
+    Args:
+        box (Tuple[float, float, float, float]):
+            The bounding box in the format (xmin, ymin, xmax, ymax).
+
+    Returns:
+        polygon (List[Tuple[float, float]]):
+            The polygon represented as a list of (x, y) coordinates.
+    """
+    xmin, ymin, xmax, ymax = box
+    polygon = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
+    return polygon
+
+
 def scale_to(polygon: List[Tuple[float, float]], W: int, H: int):
     """Scale a relative polygon to a specified width and height.
 
