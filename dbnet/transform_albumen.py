@@ -132,7 +132,7 @@ def default_transform(
 def get_augment(p=0.3, **kwargs):
     aug = default_transform(prob=p, **kwargs)
     to_float = A.ToFloat()
-    from_float = A.FromFloat()
+    from_float = A.FromFloat(dtype="uint8")
 
     def augment(image, proba_maps, thresh_maps):
         masks = np.concatenate([proba_maps, thresh_maps], axis=0)
