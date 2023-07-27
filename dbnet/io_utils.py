@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 import numpy as np
 import lmdb
 from PIL import Image
+from tqdm import tqdm
 
 
 def image_to_bytes(image: Image.Image) -> bytes:
@@ -51,7 +52,7 @@ def numpy_to_bytes(img: np.ndarray) -> bytes:
             The bytes object representing the image file.
     """
     img = (img * 255).astype("uint8")
-    img = Image.open(img)
+    img = Image.fromarray(img)
     img_bin = image_to_bytes(img)
     return img_bin
 
@@ -155,10 +156,12 @@ def dataset_to_lmdb(
     pbar = tqdm(range(num_samples), "Creating dataset")
     cache = []
     cache_count = 0
-    for idx, targets in enumerate(data_gen):
+    for idx, targets in enumerate(dataset):
         image, proba_maps, thresh_maps = targets
-        assert len(proba_maps) == num_classes
-        assert len(thresh_maps) == num_classes
+        msg = f"There are {len(proba_maps)} proba maps while the number of classes is only {num_classes}"
+        assert len(proba_maps) == num_classes, msg
+        msg = f"There are {len(thresh_maps)} threshold maps while the number of classes is only {num_classes}"
+        assert len(thresh_maps) == num_classes, len(thresh_maps)
         sample = sample_to_lmdb(image, proba_maps, thresh_maps, idx)
         cache.append(sample)
         cache_count = cache_count + 1

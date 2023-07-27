@@ -111,9 +111,9 @@ def encode_dbnet(
             continue
 
         # Shrink and expand polygon
-        outer_polygon = box_utils.offset(polygon, shrink_dist)
+        outer_polygon = box_utils.offset_polygon(polygon, shrink_dist)
         if shrink:
-            inner_polygon = box_utils.offset(polygon, -shrink_dist)
+            inner_polygon = box_utils.offset_polygon(polygon, -shrink_dist)
         else:
             inner_polygon = polygon
         inner_polygon = [np.array(inner_polygon, int)]
@@ -181,7 +181,7 @@ def draw_threshold(
     for i in range(n):
         xa, ya = polygon[i]
         xb, yb = polygon[(i + 1) % n]
-        dist = point_segment_distance(xs[:, None], ys[None, :], xa, ya, xb, yb)
+        dist = point_segment_distance(xs, ys, xa, ya, xb, yb)
         dist = np.clip(dist / distance, 0, 1)
         distances.append(dist)
 

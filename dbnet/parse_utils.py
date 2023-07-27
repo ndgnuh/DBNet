@@ -1,4 +1,5 @@
 import json
+from typing import List, Tuple
 from os import path
 
 from PIL import Image
@@ -65,3 +66,33 @@ def parse_labelme(
     assert len(classes) == len(boxes)
 
     return image, boxes, classes
+
+
+def parse_labelme_list(
+    index_path: str,
+    class2str: List[str],
+) -> List[Tuple[Image.Image, List, List]]:
+    """Parse a list of Labelme JSON files and return a list of samples.
+
+    Args:
+        index_path (str):
+            The path to the index file containing a list of Labelme JSON file paths.
+        class2str (List[str]):
+            A list mapping class indices to class names (strings).
+
+    Returns:
+        List[Tuple[Image.Image, List, List]]:
+            A list of samples. Each sample is a tuple contains the image,
+            object bounding boxes and the object classes.
+    """
+    root = path.dirname(index_path)
+    with open(index_path) as f:
+        sample_files = [line.strip() for line in f.readlines()]
+        sample_files = [line for line in sample_files if len(line) > 0]
+
+    samples = []
+    for idx, sample_file in enumerate(sample_files):
+        sample_file = path.join(root, sample_file)
+        sample = parse_labelme(sample_file, class2str)
+        samples.append(sample)
+    return samples
