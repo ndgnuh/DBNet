@@ -1,4 +1,5 @@
 import json
+import warnings
 from typing import List, Tuple
 from os import path
 
@@ -6,6 +7,8 @@ from PIL import Image
 from pyrsistent import pvector, PVector
 
 from . import box_utils as bu
+
+warnings.simplefilter("once", UserWarning)
 
 
 def parse_labelme(
@@ -60,7 +63,8 @@ def parse_labelme(
         # Target classes
         label = shape["label"]
         if label not in class2str:
-            print(f"Cannot find the label {label}, ignoring")
+            msg = f"Cannot find the label {label}, ignoring"
+            warnings.warn(msg, UserWarning)
         else:
             class_idx = class2str.index(label)
             classes = classes.append(class_idx)
