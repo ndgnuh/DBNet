@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from dbnet.io_utils import dataset_to_lmdb
 from dbnet.parse_utils import parse_labelme_list
-from dbnet.transfrom_dbnet import encode_dbnet
+from dbnet.transform_dbnet import encode_dbnet
 
 
 def parse_args():
