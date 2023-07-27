@@ -45,7 +45,6 @@ def default_transform(
         # Cropping related
         A.OneOf(
             [
-                A.RandomCropFromBorders(),
                 A.CropAndPad(percent=(0.025, 0.25)),
             ],
             p=prob,
@@ -135,13 +134,17 @@ def get_augment(p=0.3, **kwargs):
     from_float = A.FromFloat(dtype="uint8")
 
     def augment(image, proba_maps, thresh_maps):
+        # Merge masks
         masks = np.concatenate([proba_maps, thresh_maps], axis=0)
         n = len(proba_maps)
-        result = dict(image=image, masks=masks)
-        result = from_float(result)
-        result = aug(result)
-        result = to_float(result)
 
+        # Augment
+        result = dict(image=image, masks=masks)
+        result = from_float(**result)
+        result = aug(**result)
+        result = to_float(**result)
+
+        # Format outputs
         image = result["image"]
         proba_maps = result["masks"][:n]
         thresh_maps = result["masks"][n:]
