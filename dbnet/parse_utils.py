@@ -56,7 +56,6 @@ def parse_labelme(
             box = bu.scale_from(box, width, height)
         else:
             continue
-        boxes = boxes.append(box)
 
         # Target classes
         label = shape["label"]
@@ -65,6 +64,7 @@ def parse_labelme(
         else:
             class_idx = class2str.index(label)
             classes = classes.append(class_idx)
+            boxes = boxes.append(box)
 
     # Correctness check
     assert len(classes) == len(boxes)
