@@ -87,10 +87,21 @@ class DBNetDataset:
         tmaps = np.stack(tmaps, axis=0)
         return image, pmaps, tmaps
 
-    def visualize(self):
+    def visualize(self, n: Optional[int] = None):
+        """visualize dataset
+
+        Args:
+            n (Optional[int]):
+                Maximum number of sample to visualize. Default: None.
+        """
         from matplotlib import pyplot as plt
 
+        if n is None:
+            n = len(self) + 1
+
         for i in range(len(self)):
+            if i > n:
+                break
             image, pmaps, tmaps = self[i]
             image = image.transpose((1, 2, 0))
             print(f"sample {i}")
