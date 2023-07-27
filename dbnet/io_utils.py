@@ -19,7 +19,7 @@ def image_to_bytes(image: Image.Image) -> bytes:
             The bytes representing the image in JPEG format with quality set to 100.
     """
     io = BytesIO()
-    image.save(io, "WEBP", lossless=True)
+    image.save(io, "JPEG", quality=100)
     bs = io.getvalue()
     return bs
 
