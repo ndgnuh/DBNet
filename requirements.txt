@@ -8,3 +8,4 @@ opencv-python
 tqdm
 lightning
 pydantic<2
+albumentations
