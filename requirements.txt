@@ -1,0 +1,9 @@
+torch
+torchvision
+lmdb
+Pillow
+pyrsistent
+numpy
+opencv-python
+tqdm
+lightning
