@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 
 from .datasets import DBNetDataset
+from .transform_albumen import get_augment
 
 
 def loop_loader(loader, total_steps: int):
@@ -53,14 +54,16 @@ def train(
     print_every: int = 250,
     batch_size: int = 1,
     num_workers: int = 1,
+    augment: bool = False,
 ):
     """Train the model"""
     # Training helpers
     fabric = Fabric()
 
     # Load data
+    transform = get_augment() if augment else None
     train_loader = DataLoader(
-        DBNetDataset(train_data),
+        DBNetDataset(train_data, transform=transform),
         batch_size=batch_size,
         num_workers=num_workers,
         shuffle=True,
