@@ -9,3 +9,4 @@ tqdm
 lightning
 pydantic<2
 albumentations
+onnx
