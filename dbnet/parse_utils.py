@@ -59,8 +59,12 @@ def parse_labelme(
         boxes = boxes.append(box)
 
         # Target classes
-        class_idx = class2str.index(shape["label"])
-        classes = classes.append(class_idx)
+        label = shape["label"]
+        if label not in class2str:
+            print(f"Cannot find the label {label}, ignoring")
+        else:
+            class_idx = class2str.index(label)
+            classes = classes.append(class_idx)
 
     # Correctness check
     assert len(classes) == len(boxes)
