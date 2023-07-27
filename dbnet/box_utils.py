@@ -1,6 +1,52 @@
 from typing import List, Tuple
 
 
+def scale_to(polygon: List[Tuple[float, float]], W: int, H: int):
+    """Scale a relative polygon to a specified width and height.
+
+    Args:
+        polygon (List[Tuple[float, float]]):
+            The input polygon represented as a list of (x, y) coordinates.
+            The value must be in 0-1 range.
+        W (int):
+            The target width.
+        H (int):
+            The target height.
+
+    Returns:
+        polygon (List[Tuple[float, float]]):
+            The scaled polygon with coordinates adjusted to fit within the specified
+            width and height.
+    """
+    for x, y in polygon:
+        assert x <= 1 and x >= 0
+        assert y <= 1 and y >= 0
+    return [(x * W, y * H) for (x, y) in polygon]
+
+
+def scale_from(polygon: List[Tuple[float, float]], W: int, H: int):
+    """Scale an absolute polygon to relative from W and H.
+
+    Args:
+        polygon (List[Tuple[float, float]]):
+            The input polygon represented as a list of (x, y) coordinates.
+            The coordinate of this polygon is absolute.
+        W (int):
+            The original width.
+        H (int):
+            The original height.
+
+    Returns:
+        polygon (List[Tuple[float, float]]):
+            The scaled polygon with relative coordinates between 0 and 1.
+    """
+    polygon = [(x / W, y / H) for (x, y) in polygon]
+    for x, y in polygon:
+        assert x <= 1 and x >= 0
+        assert y <= 1 and y >= 0
+    return polygon
+
+
 def get_area(poly: List[Tuple[float, float]]) -> float:
     """Calculate area of a polygon.
 
