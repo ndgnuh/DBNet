@@ -1,6 +1,6 @@
 from io import BytesIO
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import numpy as np
 import lmdb
@@ -75,7 +75,7 @@ def bytes_to_numpy(image_bin: bytes) -> bytes:
     return image
 
 
-def to_lmdb(
+def sample_to_lmdb(
     image: Image.Image,
     proba_maps: np.ndarray,
     thresh_maps: np.ndarray,
@@ -115,6 +115,73 @@ def to_lmdb(
     return sample
 
 
+def dataset_to_lmdb(
+    output_path: str,
+    dataset: Any,
+    num_classes: int,
+    map_size: int = int(1e12),
+    cache_size: int = 100,
+):
+    """
+    Convert a dataset to an LMDB database.
+
+    Args:
+        output_path (str):
+            The output path of the LMDB database.
+        dataset (Any):
+            The input dataset. The dataset should be iterable and return
+            samples in the format (image, proba_maps, thresh_maps).
+        num_classes (int):
+            The number of classes (channels) in the probability and threshold maps.
+        map_size (int, optional):
+            The maximum size of the LMDB database. Default is 1 TB (10^12 bytes).
+        cache_size (int, optional):
+            The number of samples to write to the database at once. Default is 100.
+
+    Returns:
+        str:
+            The path to the generated LMDB database.
+    """
+    num_samples = len(output_path)
+
+    # Writing context
+    env = lmdb.open(output_path, map_size=map_size)
+
+    def write_cache(cache: List[Dict[bytes, bytes]]):
+        with env.begin(write=True) as txn:
+            for sample in cache:
+                for k, v in sample.items():
+                    txn.put(k, v)
+
+    # Write dataset
+    pbar = tqdm(range(num_samples), "Creating dataset")
+    cache = []
+    cache_count = 0
+    for idx, targets in enumerate(data_gen):
+        image, proba_maps, thresh_maps = targets
+        assert len(proba_maps) == num_classes
+        assert len(thresh_maps) == num_classes
+        sample = sample_to_lmdb(image, proba_maps, thresh_maps, idx)
+        cache.append(sample)
+        cache_count = cache_count + 1
+        if cache_count == cache_size:
+            write_cache(cache)
+            cache = []
+            cache_count = 0
+    write_cache(cache)
+
+    # Write metadata
+    metadata = dict()
+    metadata["__len__".encode()] = str(num_samples).encode()
+    metadata["__num_classes__".encode()] = str(num_classes).encode()
+    write_cache(metadata)
+
+    # Clean up and return the output path
+    env.close()
+    print(f"Output is written in {output_path}")
+    return output_path
+
+
 class DBNetDataset(Dataset):
     """
     Dataset class for DBNet samples stored in an LMDB database.
@@ -152,22 +219,22 @@ class DBNetDataset(Dataset):
 
     def __getitem__(self, idx):
         """
-        Get a sample from the dataset at the specified index.
+            Get a sample from the dataset at the specified index.
 
         Args:
             idx (int):
                 The index of the sample to retrieve.
-            transform (Callable[T, T]):
-                A transform function that takes `image`, `proba_maps`, and `threshold_maps`
-                and returns the same. This is used for augmentations.
+                transform (Callable[T, T]):
+                    A transform function that takes `image`, `proba_maps`, and `threshold_maps`
+                    and returns the same. This is used for augmentations.
 
-        Returns:
-            image (torch.Tensor):
-                A tensor in [3, H, W] that stores the input image.
-            proba_maps (torch.Tensor):
-                A tensor in [C, H, W] that stores the probability maps.
-            thresh_maps (torch.Tensor):
-                A tensor in [C, H, W] that stores the thresholds maps.
+            Returns:
+                image (torch.Tensor):
+                    A tensor in [3, H, W] that stores the input image.
+                proba_maps (torch.Tensor):
+                    A tensor in [C, H, W] that stores the probability maps.
+                thresh_maps (torch.Tensor):
+                    A tensor in [C, H, W] that stores the thresholds maps.
         """
         # Load from LMDB
         with self.env.begin() as txn:
