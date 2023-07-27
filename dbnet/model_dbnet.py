@@ -1,4 +1,5 @@
 from typing import Optional
+
 from torch import nn, Tensor
 from torchvision import transforms as T
 
@@ -70,7 +71,7 @@ class DBNetHead(nn.Module):
 
         # Compute loss
         if gt_probas is not None:
-            loss = dbnet_loss(probas, thresholds, gt_proba, gt_threshold)
+            loss = dbnet_loss(probas, thresholds, gt_probas, gt_thresholds)
         else:
             loss = None
 
