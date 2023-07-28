@@ -10,3 +10,5 @@ lightning
 pydantic<2
 albumentations
 onnx
+onnxruntime
+matplotlib
