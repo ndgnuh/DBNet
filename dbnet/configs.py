@@ -110,6 +110,14 @@ class Config:
         """
     )
 
+    backbone: str = config_field(
+        """
+        Model backbone
+        """,
+        choices=["mobilenet_v3_large", "mobilenet_v3_small"],
+        default="mobilenet_v3_large",
+    )
+
     target_size: Optional[Tuple[int, int]] = config_field(
         """
         The size of the target heatmap.
@@ -175,11 +183,27 @@ class Config:
         default=None,
     )
 
+    src_train_data: Optional[str] = config_field(
+        """
+        Path to train data index.
+        This is used to create LMDB dataset.
+        """,
+        default=None,
+    )
+
     val_data: Optional[str] = config_field(
         """
         Path to validation data lmdb directory.
         Not used in inference process.
         Must not be null if training.
+        """,
+        default=None,
+    )
+
+    src_val_data: Optional[str] = config_field(
+        """
+        Path to validate data index.
+        This is used to create LMDB dataset.
         """,
         default=None,
     )
@@ -219,6 +243,12 @@ def resolve_config(config: Config) -> Dict:
     encode_options["target_size"] = config.target_size or config.image_size
     encode_options["num_classes"] = config.num_classes
 
+    # Model
+    model_options = {}
+    model_options["backbone"] = config.backbone
+    model_options["hidden_size"] = config.hidden_size
+    model_options["num_classes"] = config.num_classes
+
     # Training
     train_options = {}
     train_options["train_data"] = config.train_data
@@ -236,4 +266,5 @@ def resolve_config(config: Config) -> Dict:
     options = {}
     options["encoding"] = encode_options
     options["training"] = train_options
+    options["model"] = model_options
     return options

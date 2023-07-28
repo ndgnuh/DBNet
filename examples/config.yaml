@@ -16,8 +16,12 @@ hidden_size: 256
 #	and for reverse mapping from dataset files.
 #	The model only cares about how many class there are.
 classes:
-- dog
-- cat
+- text
+
+# backbone (str):
+#	Model backbone
+#	Supported values: mobilenet_v3_large, mobilenet_v3_small
+backbone: mobilenet_v3_large
 
 # target_size (typing.Optional[typing.Tuple[int, int]]):
 #	The size of the target heatmap.
@@ -60,13 +64,23 @@ expand_rate: 1.5
 #	Path to training data lmdb directory.
 #	Not used in inference process.
 #	Must not be null if training.
-train_data: examples/lmdb/train
+train_data: examples/lmdb/train/
+
+# src_train_data (typing.Optional[str]):
+#	Path to train data index.
+#	This is used to create LMDB dataset.
+src_train_data: examples/train.txt
 
 # val_data (typing.Optional[str]):
 #	Path to validation data lmdb directory.
 #	Not used in inference process.
 #	Must not be null if training.
-val_data: examples/lmdb/val
+val_data: examples/lmdb/val/
+
+# src_val_data (typing.Optional[str]):
+#	Path to validate data index.
+#	This is used to create LMDB dataset.
+src_val_data: examples/val.txt
 
 # training_lr (float):
 training_lr: 0.007
@@ -91,4 +105,3 @@ training_augment_rotation: true
 
 # training_augment_flip (bool):
 training_augment_flip: false
-

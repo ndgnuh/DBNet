@@ -13,19 +13,7 @@ from dbnet.configs import Config, resolve_config
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument("-c", dest="config", required=True, help="Config file")
-    parser.add_argument(
-        "--train",
-        dest="train_data",
-        required=True,
-        help="Training index file",
-    )
-    parser.add_argument(
-        "--val",
-        dest="val_data",
-        required=True,
-        help="Validation index file",
-    )
+    parser.add_argument("config", help="Config file")
     return parser.parse_args()
 
 
@@ -60,8 +48,18 @@ def main():
 
     # Encoding config
     enc_config = resolve_config(config)["encoding"]
-    mk_train_data(args.train_data, config.train_data, config.classes, enc_config)
-    mk_train_data(args.val_data, config.val_data, config.classes, enc_config)
+    mk_train_data(
+        config.src_train_data,
+        config.train_data,
+        config.classes,
+        enc_config,
+    )
+    mk_train_data(
+        config.src_val_data,
+        config.val_data,
+        config.classes,
+        enc_config,
+    )
 
 
 if __name__ == "__main__":
