@@ -105,10 +105,10 @@ def encode_dbnet(
         area = bu.get_area(polygon)
         length = bu.get_length(polygon)
         shrink_dist = area * (1 + shrink_rate**2) / length
-        shrink_dist = min(max_distance, shrink_dist)
+        shrink_dist = abs(min(max_distance, shrink_dist))
 
         # ignore small bounding boxes
-        if area < min_box_size:
+        if abs(area) < min_box_size:
             continue
 
         # Shrink and expand polygon
@@ -335,11 +335,15 @@ def decode_dbnet(
 
         # For each contour
         for cnt in cnts:
-            # Filter small boxes
-            area = cv2.contourArea(cnt)
-            if area < min_box_size:
+            # Filter invalid contour
+            if len(cnt) < 4:
                 continue
+
+            # Filter small boxes
             length = cv2.arcLength(cnt, True)
+            area = cv2.contourArea(cnt, oriented=True)
+            if abs(area) < min_box_size or length < min_box_size:
+                continue
 
             # Compute object score
             score = 1
@@ -351,9 +355,17 @@ def decode_dbnet(
 
             # Compute expand distance
             if expand:
-                dist = area * expand_rate / length
+                dist = abs(area * expand_rate / length)
                 dist = min(max_distance, dist)
-                cnt = bu.offset_polygon(cnt, dist)
+                try:
+                    cnt = bu.offset_polygon(cnt, dist, area > 0)
+                except AssertionError:
+                    # Invalid polygon
+                    continue
+
+            # Filter invalid contour
+            if len(cnt) < 4:
+                continue
 
             # Descale polygon
             cnt = [(x / W, y / H) for (x, y) in cnt]

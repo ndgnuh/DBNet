@@ -111,14 +111,17 @@ def get_length(poly: List[Tuple[float, float]]) -> float:
     return peri
 
 
-def offset_polygon(poly: List[Tuple[float, float]], offset: float):
+def offset_polygon(poly: List[Tuple[float, float]], offset: float, ccw: bool):
     """Offset polygon
 
     Args:
         poly (List[Tuple[float, float]]):
-            The polygon to expand
+            The polygon to expand.
         offset (float):
-            The offset, positive offset means expanding
+            The offset, positive offset means expanding.
+        ccw (bool):
+            If the polygon is positive (counter clock wise).
+            This can be obtained by `get_area(polygon) > 0`.
 
     Returns:
         new_poly (List[Tuple[float, float]]):
@@ -128,6 +131,8 @@ def offset_polygon(poly: List[Tuple[float, float]], offset: float):
     scale = 1000
     m = n = len(poly)
     offset = offset * scale
+    if not ccw:
+        offset = -offset
     offset_lines = [(0.0, 0.0, 0.0, 0.0)] * n
     new_poly = [(0.0, 0.0)] * n
 
