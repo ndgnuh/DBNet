@@ -242,6 +242,8 @@ def resolve_config(config: Config) -> Dict:
     encode_options["shrink_rate"] = config.shrink_rate
     encode_options["target_size"] = config.target_size or config.image_size
     encode_options["num_classes"] = config.num_classes
+    encode_options["max_distance"] = config.max_distance
+    encode_options["min_box_size"] = config.min_box_size
 
     # Model
     model_options = {}
