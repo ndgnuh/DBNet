@@ -1,4 +1,5 @@
 import warnings
+from argparse import ArgumentParser
 from os import path
 
 import torch
@@ -128,7 +129,10 @@ def main_train(config: Config):
 
 
 if __name__ == "__main__":
-    with open("examples/config.yaml") as f:
+    parser = ArgumentParser()
+    parser.add_argument("config")
+    args = parser.parse_args()
+    with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         config = Config(**config)
     main_train(config)
