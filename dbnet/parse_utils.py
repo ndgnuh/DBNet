@@ -42,7 +42,11 @@ def parse_labelme(
     # Load image
     image_path = path.join(root_path, image_path)
     image = Image.open(image_path)
+    image.load()
+    image_ = image.copy()
     width, height = image.size
+    image.close()
+    image = image_
 
     # The target boxes and classes
     boxes = pvector()
