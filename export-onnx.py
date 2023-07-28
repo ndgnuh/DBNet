@@ -1,7 +1,12 @@
+from argparse import ArgumentParser
+from os import path
+
 import torch
+import yaml
 from torch import nn
-from dbnet import model_dbnet
-from dbnet.training import train
+
+from dbnet.model_dbnet import DBNet
+from dbnet.configs import Config
 
 
 class WithSigmoid(nn.Module):
@@ -14,24 +19,39 @@ class WithSigmoid(nn.Module):
         return torch.sigmoid(x * 50)
 
 
-image_size = (1024, 1024)
-hidden_size = 256
-num_classes = 1
-weight = "latest.pt"
-backbone = "mobilenet_v3_large"
-output_file = "db_mobilenet_v3_large.onnx"
+def export(config: Config):
+    # Context
+    options = config.resolve()
+    weight_path = config.weight_path or "/idk"
+    output_file = config.onnx_path
+    image_size = config.image_size
+    assert path.exists(weight_path)
+    assert output_file is not None
 
-model = model_dbnet.DBNet(backbone, hidden_size, num_classes)
-model.load_state_dict(torch.load(weight, map_location="cpu"))
-model = WithSigmoid(model)
-model.eval()
+    # Load model
+    model = DBNet(**options["model"])
+    model.load_state_dict(torch.load(weight_path, map_location="cpu"))
+    model = WithSigmoid(model)
+    model = model.eval()
 
-inputs = torch.rand(1, 3, *image_size)
-torch.onnx.export(
-    model,
-    inputs,
-    output_file,
-    input_names=["images"],
-    dynamic_axes=dict(images=[0]),
-    do_constant_folding=True,
-)
+    # Example inputs
+    inputs = torch.rand(1, 3, image_size[1], image_size[0])
+    torch.onnx.export(
+        model,
+        inputs,
+        output_file,
+        input_names=["images"],
+        dynamic_axes=dict(images=[0]),
+        do_constant_folding=True,
+    )
+    print(f"Model exported to {output_file}")
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("config")
+    args = parser.parse_args()
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+        config = Config(**config)
+    export(config)
