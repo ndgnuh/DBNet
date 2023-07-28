@@ -101,11 +101,14 @@ class Config:
         """
     )
 
-    classes: List[str] = config_field(
+    classes: Union[List[str], Dict[str, int]] = config_field(
         """
         The object classes.
         Mapping from class index to string is required for pretty printting
         and for reverse mapping from dataset files.
+        If the value is a list, it maps class index to class name.
+        If the value is a dictionary, it map class name to index.
+        This is useful if one wants to map multiple label into one class.
         The model only cares about how many class there are.
         """
     )
@@ -281,7 +284,11 @@ class Config:
 
     @property
     def num_classes(self) -> int:
-        return len(self.classes)
+        classes = self.classes
+        if isinstance(classes, list):
+            return len(classes)
+        if isinstance(classes, dict):
+            return len(set(classes.values()))
 
     def resolve(self):
         return resolve_config(self)

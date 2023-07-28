@@ -1,6 +1,6 @@
 from os import path, makedirs
 from argparse import ArgumentParser
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 
 import yaml
 from tqdm import tqdm
@@ -20,19 +20,19 @@ def parse_args():
 def mk_train_data(
     src_path: str,
     lmdb_path: str,
-    classes: List[str],
-    dbnet_config: Dict,
+    class_mapping: Union[List, Dict],
+    num_classes: int,
+    encode_config: Dict,
 ):
     # Load data
     root = path.dirname(lmdb_path)
-    num_classes = len(classes)
     makedirs(root, exist_ok=True)
-    dataset = parse_labelme_list(src_path, classes)
+    dataset = parse_labelme_list(src_path, class_mapping)
 
     # Encode the dataset
     def encoded_dataset():
         for sample in tqdm(dataset, "Building dataset"):
-            encoded = encode_dbnet(*sample, **dbnet_config)
+            encoded = encode_dbnet(*sample, **encode_config)
             yield encoded
 
     dataset_to_lmdb(lmdb_path, encoded_dataset(), num_classes)
@@ -52,12 +52,14 @@ def main():
         config.src_train_data,
         config.train_data,
         config.classes,
+        config.num_classes,
         enc_config,
     )
     mk_train_data(
         config.src_val_data,
         config.val_data,
         config.classes,
+        config.num_classes,
         enc_config,
     )
 

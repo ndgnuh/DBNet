@@ -1,6 +1,6 @@
 import json
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Union
 from os import path
 
 from PIL import Image
@@ -12,16 +12,18 @@ warnings.simplefilter("once", UserWarning)
 
 
 def parse_labelme(
-    sample_path: str, class2str: List[str]
+    sample_path: str,
+    class_mapping: Union[List[str], Dict[str, int]],
 ) -> [Image.Image, PVector, PVector]:
     """Load a labelme json.
 
     Args:
         sample_path (str):
             Path to sample labelme json.
-        class2str (List[str]):
-            List of class names, this is required to convert labelme
-            class to number.
+        class2str (Union[List[str], Dict[str, int]]):
+            Either a list of class names, or a dictionary that maps
+            class name to class index.
+            This is required to convert labelme class to number.
 
     Returns:
         image (Pil.Image.Image):
@@ -37,7 +39,6 @@ def parse_labelme(
     root_path = path.dirname(sample_path)
     shapes = data["shapes"]
     image_path = data["imagePath"]
-    image_data = data["imageData"]
 
     # Load image
     image_path = path.join(root_path, image_path)
@@ -66,11 +67,14 @@ def parse_labelme(
 
         # Target classes
         label = shape["label"]
-        if label not in class2str:
+        if label not in class_mapping:
             msg = f"Cannot find the label {label}, ignoring"
             warnings.warn(msg, UserWarning)
         else:
-            class_idx = class2str.index(label)
+            if isinstance(class_mapping, list):
+                class_idx = class_mapping.index(label)
+            else:
+                class_idx = class_mapping[label]
             classes = classes.append(class_idx)
             boxes = boxes.append(box)
 
