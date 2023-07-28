@@ -1,0 +1,94 @@
+# image_size (typing.Tuple[int, int]):
+#	The size of the input image.
+#	The value must be a tuple of (width, height).
+image_size:
+- 1024
+- 1024
+
+# hidden_size (int):
+#	The number of output channels for the feature pyramid module.
+#	The number of channels of prediction head will be 1/4 of this.
+hidden_size: 256
+
+# classes (typing.List[str]):
+#	The object classes.
+#	Mapping from class index to string is required for pretty printting
+#	and for reverse mapping from dataset files.
+#	The model only cares about how many class there are.
+classes:
+- dog
+- cat
+
+# target_size (typing.Optional[typing.Tuple[int, int]]):
+#	The size of the target heatmap.
+#	Can either be a tuple of (width, height) or null.
+#	If null, `image_size` will be used.
+target_size: null
+
+# max_distance (typing.Union[int, float, NoneType]):
+#	The maximum shrinking distance for the bounding boxes.
+#	None value means no maximum.
+#	Integer value means absolute maximum value.
+#	Float value means the maximum will be some percentage of the target area.
+max_distance: null
+
+# min_box_size (typing.Union[int, float, NoneType]):
+#	The minimum bounding box size.
+#	None value means no minimum size.
+#	Integer value means absolute minimum size.
+#	Float value means the minimum size will be some percentage of the target area.
+min_box_size: null
+
+# shrink (bool):
+#	If `True`, the polygons are shrunken when drawing the probablity maps.
+#	If `False`, the original polygons are used.
+shrink: true
+
+# shrink_rate (float):
+#	DBNet shrink ratio from DBNet paper. The shrink will be
+#	A * (1 - r^2) / L, where r is the ratio, A and L are the
+#	area and the length of the polygon bounding box.
+shrink_rate: 0.4
+
+# expand_rate (float):
+#	DBNet expand ratio from DBNet paper. The expand distance will be
+#	A * r / L, where r is the ratio, A and L are the area
+#	and the length of the polygon bounding box.
+expand_rate: 1.5
+
+# train_data (typing.Optional[str]):
+#	Path to training data lmdb directory.
+#	Not used in inference process.
+#	Must not be null if training.
+train_data: examples/lmdb/train
+
+# val_data (typing.Optional[str]):
+#	Path to validation data lmdb directory.
+#	Not used in inference process.
+#	Must not be null if training.
+val_data: examples/lmdb/val
+
+# training_lr (float):
+training_lr: 0.007
+
+# training_total_steps (int):
+training_total_steps: 100000
+
+# training_batch_size (int):
+training_batch_size: 1
+
+# training_num_workers (int):
+training_num_workers: 0
+
+# training_print_every (int):
+training_print_every: 250
+
+# training_augment (bool):
+training_augment: true
+
+# training_augment_rotation (bool):
+training_augment_rotation: true
+
+# training_augment_flip (bool):
+training_augment_flip: false
+

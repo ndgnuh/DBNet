@@ -217,6 +217,7 @@ def resolve_config(config: Config) -> Dict:
     encode_options["shrink"] = config.shrink
     encode_options["shrink_rate"] = config.shrink_rate
     encode_options["target_size"] = config.target_size or config.image_size
+    encode_options["num_classes"] = config.num_classes
 
     # Training
     train_options = {}

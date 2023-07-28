@@ -8,11 +8,24 @@ from tqdm import tqdm
 from dbnet.io_utils import dataset_to_lmdb
 from dbnet.parse_utils import parse_labelme_list
 from dbnet.transform_dbnet import encode_dbnet
+from dbnet.configs import Config, resolve_config
 
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument("config")
+    parser.add_argument("-c", dest="config", required=True, help="Config file")
+    parser.add_argument(
+        "--train",
+        dest="train_data",
+        required=True,
+        help="Training index file",
+    )
+    parser.add_argument(
+        "--val",
+        dest="val_data",
+        required=True,
+        help="Validation index file",
+    )
     return parser.parse_args()
 
 
@@ -43,16 +56,12 @@ def main():
 
     with open(config_file) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
+        config = Config(**config)
 
-    # DBNet config
-    db_config = config.get("dbnet", {})
-    db_config["target_size"] = config["image_size"]
-    db_config["num_classes"] = len(config["classes"])
-
-    data = config["train_data"]
-    mk_train_data(data["src_path"], data["lmdb_path"], config["classes"], db_config)
-    data = config["val_data"]
-    mk_train_data(data["src_path"], data["lmdb_path"], config["classes"], db_config)
+    # Encoding config
+    enc_config = resolve_config(config)["encoding"]
+    mk_train_data(args.train_data, config.train_data, config.classes, enc_config)
+    mk_train_data(args.val_data, config.val_data, config.classes, enc_config)
 
 
 if __name__ == "__main__":
