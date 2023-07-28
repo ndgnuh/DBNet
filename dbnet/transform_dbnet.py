@@ -275,6 +275,35 @@ def decode_dbnet(
     min_box_size: Optional[Union[int, float]],
     threshold: float = 0.02,
 ):
+    """Decode the output probability maps of the DBNet model to bounding box polygons.
+
+    Args:
+        proba_maps (np.ndarray):
+            The probability maps obtained from the DBNet model.
+        expand_rate (float):
+            The expansion rate used for expanding the bounding boxes.
+        expand (bool):
+            A boolean value indicating whether to expand the bounding boxes.
+        max_distance (Optional[Union[int, float]]):
+            The maximum distance for expanding the bounding boxes.
+            If provided as a float, it will be scaled by the image size.
+            If None, no maximum distance constraint is applied.
+        min_box_size (Optional[Union[int, float]]):
+            The minimum size of the bounding boxes.
+            If provided as a float, it will be scaled by the image size.
+            If None, no minimum size constraint is applied.
+        threshold (float, optional):
+            The threshold value for binarizing the probability maps. Default is 0.02.
+
+    Returns:
+        boxes (List[List[Tuple[float, float]]]):
+            Object bounding box polygons.
+            The polygon are scaled to relative value in 0..1 range.
+        classes (List[int]):
+            Object class indices.
+        scores (List[float]):
+            Bounding box scores. Not implemented and only returns 1 for now.
+    """
     # Binarize
     bin_maps = (proba_maps > 0.02).astype("uint8")
     C, H, W = bin_maps.shape
