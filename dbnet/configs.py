@@ -162,7 +162,7 @@ class Config:
         A * r / L, where r is the ratio, A and L are the area
         and the length of the polygon bounding box.
         """,
-        default=0.4,
+        default=1.5,
     )
 
     # Training config
