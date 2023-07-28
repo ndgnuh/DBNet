@@ -332,10 +332,14 @@ def decode_dbnet(
         # Find countour
         bin_map = bin_maps[c_idx]
         proba_map = proba_maps[c_idx]
-        cnts, _ = cv2.findContours(bin_map, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hiers = cv2.findContours(bin_map, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # For each contour
-        for cnt in cnts:
+        for cnt, (_, _, _, parent) in zip(cnts, hiers[0]):
+            # Only take the outer most contour
+            if parent != -1:
+                continue
+
             # Filter invalid contour
             if len(cnt) < 4:
                 continue
