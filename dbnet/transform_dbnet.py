@@ -1,10 +1,11 @@
-from typing import Tuple, Union, List, Tuple
+import warnings
+from typing import Tuple, Union, List, Tuple, Optional
 
 import cv2
 import numpy as np
 from PIL import Image
 
-from . import box_utils
+from . import box_utils as bu
 
 
 def encode_dbnet(
@@ -101,8 +102,8 @@ def encode_dbnet(
         polygon = [(x * W, y * H) for (x, y) in polygon]
 
         # Polygon metrics
-        area = box_utils.get_area(polygon)
-        length = box_utils.get_length(polygon)
+        area = bu.get_area(polygon)
+        length = bu.get_length(polygon)
         shrink_dist = area * (1 + shrink_rate**2) / length
         shrink_dist = min(max_distance, shrink_dist)
 
@@ -111,9 +112,9 @@ def encode_dbnet(
             continue
 
         # Shrink and expand polygon
-        outer_polygon = box_utils.offset_polygon(polygon, shrink_dist)
+        outer_polygon = bu.offset_polygon(polygon, shrink_dist)
         if shrink:
-            inner_polygon = box_utils.offset_polygon(polygon, -shrink_dist)
+            inner_polygon = bu.offset_polygon(polygon, -shrink_dist)
         else:
             inner_polygon = polygon
         inner_polygon = [np.array(inner_polygon, int)]
@@ -264,3 +265,74 @@ def point_segment_distance(
     cos_mask = cos >= 0
     dists[cos_mask] = np.sqrt(np.minimum(MA2, MB2)[cos_mask])
     return dists
+
+
+def decode_dbnet(
+    proba_maps: np.ndarray,
+    expand_rate: float,
+    expand: bool,
+    max_distance: Optional[Union[int, float]],
+    min_box_size: Optional[Union[int, float]],
+    threshold: float = 0.02,
+):
+    # Binarize
+    bin_maps = (proba_maps > 0.02).astype("uint8")
+    C, H, W = bin_maps.shape
+    S = H * W
+
+    # Guard for max distance ...
+    if isinstance(max_distance, float):
+        max_distance = max_distance * S
+    elif max_distance is None:
+        max_distance = 9999
+
+    # ... and min box size
+    if isinstance(min_box_size, float):
+        min_box_size = min_box_size * S
+    elif min_box_size is None:
+        min_box_size = -1
+
+    # Decode targets
+    classes = []
+    polygons = []
+    scores = []
+
+    # Foreach binary maps
+    for c_idx in range(C):
+        # Find countour
+        bin_map = bin_maps[c_idx]
+        proba_map = proba_maps[c_idx]
+        cnts, _ = cv2.findContours(bin_map, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+        # For each contour
+        for cnt in cnts:
+            # Filter small boxes
+            area = cv2.contourArea(cnt)
+            if area < min_box_size:
+                continue
+            length = cv2.arcLength(cnt, True)
+
+            # Compute object score
+            score = 1
+            warnings.warn("[TODO] implement score computation", Warning)
+
+            # Simplify the countour
+            cnt = cv2.approxPolyDP(cnt, closed=True, epsilon=length * 0.05)
+            cnt = cnt[:, 0, :].tolist()
+
+            # Compute expand distance
+            if expand:
+                dist = area * expand_rate / length
+                dist = min(max_distance, dist)
+                cnt = bu.offset_polygon(cnt, dist)
+
+            # Descale polygon
+            cnt = [(x / W, y / H) for (x, y) in cnt]
+
+            # Append results
+            polygons.append(cnt)
+            classes.append(c_idx)
+            scores.append(score)
+
+    # Return
+    return polygons, classes, scores
