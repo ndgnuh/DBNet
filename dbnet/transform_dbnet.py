@@ -112,9 +112,10 @@ def encode_dbnet(
             continue
 
         # Shrink and expand polygon
-        outer_polygon = bu.offset_polygon(polygon, shrink_dist)
+        ccw = area > 0
+        outer_polygon = bu.offset_polygon(polygon, shrink_dist, ccw)
         if shrink:
-            inner_polygon = bu.offset_polygon(polygon, -shrink_dist)
+            inner_polygon = bu.offset_polygon(polygon, -shrink_dist, ccw)
         else:
             inner_polygon = polygon
         inner_polygon = [np.array(inner_polygon, int)]
