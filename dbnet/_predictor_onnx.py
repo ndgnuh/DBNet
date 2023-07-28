@@ -5,6 +5,8 @@ import numpy as np
 from onnxruntime import InferenceSession
 from PIL import Image
 
+from .transform_dbnet import decode_dbnet
+
 
 def prepare_inputs(image: Image.Image, image_size: Tuple[int, int]):
     """

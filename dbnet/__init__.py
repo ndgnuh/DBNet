@@ -1,1 +1,1 @@
-from ._predictor_onnx import PredictorONNX
+from ._predictor_onnx import PredictorONNX as DBNetONNX
