@@ -30,12 +30,12 @@ def mk_train_data(
     dataset = parse_labelme_list(src_path, classes)
 
     # Encode the dataset
-    encoded_dataset = []
-    for sample in tqdm(dataset, "Encoding samples"):
-        encoded = encode_dbnet(*sample, **dbnet_config)
-        encoded_dataset.append(encoded)
+    def encoded_dataset():
+        for sample in tqdm(dataset, "Building dataset"):
+            encoded = encode_dbnet(*sample, **dbnet_config)
+            yield encoded
 
-    dataset_to_lmdb(lmdb_path, encoded_dataset, num_classes)
+    dataset_to_lmdb(lmdb_path, encoded_dataset(), num_classes)
 
 
 def main():

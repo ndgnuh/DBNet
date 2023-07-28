@@ -145,7 +145,6 @@ def dataset_to_lmdb(
         str:
             The path to the generated LMDB database.
     """
-    num_samples = len(dataset)
 
     # Writing context
     env = lmdb.open(output_path, map_size=map_size)
@@ -157,9 +156,9 @@ def dataset_to_lmdb(
                     txn.put(k, v)
 
     # Write dataset
-    pbar = tqdm(range(num_samples), "Creating dataset")
     cache = []
     cache_count = 0
+    num_samples = 0
     for idx, targets in enumerate(dataset):
         image, proba_maps, thresh_maps = targets
         msg = f"There are {len(proba_maps)} proba maps while the number of classes is only {num_classes}"
@@ -169,11 +168,11 @@ def dataset_to_lmdb(
         sample = sample_to_lmdb(image, proba_maps, thresh_maps, idx)
         cache.append(sample)
         cache_count = cache_count + 1
+        num_samples = num_samples + 1
         if cache_count == cache_size:
             write_cache(cache)
             cache = []
             cache_count = 0
-        pbar.update()
 
     write_cache(cache)
 
