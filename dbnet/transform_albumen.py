@@ -105,21 +105,28 @@ def default_transform(
     if rotate:
         rotate_transform = A.OneOf(
             [
+                # *[
+                #     A.Perspective(fit_output=True, pad_val=(r, g, b))
+                #     for (r, g, b) in rgb_range(10)
+                # ],
                 *[
-                    A.Perspective(fit_output=True, pad_val=(r, g, b))
-                    for (r, g, b) in rgb_range(10)
-                ],
-                *[
-                    A.Affine(
-                        scale=(0.3, 1),
-                        rotate=(-180, 180),
-                        translate_percent=(0.2, 0.2),
-                        shear=(-30, 30),
-                        fit_output=True,
-                        cval=(r, g, b),
+                    A.SafeRotate(
+                        limit=(-30, 30),
+                        border_mode=cv2.BORDER_CONSTANT,
+                        value=(r, g, b),
                     )
                     for (r, g, b) in rgb_range(10)
-                ],
+                ]
+                # *[
+                #     A.Affine(
+                #         scale=1,
+                #         rotate=(-30, 30),
+                #         shear=(-30, 30),
+                #         fit_output=True,
+                #         cval=(r, g, b),
+                #     )
+                #     for (r, g, b) in rgb_range(10)
+                # ],
             ],
             p=prob,
         )
@@ -128,8 +135,8 @@ def default_transform(
     return A.Compose(transformations)
 
 
-def get_augment(p=0.3, **kwargs):
-    aug = default_transform(prob=p, **kwargs)
+def get_augment(enabled: bool, prob: float = 0.3, **kwargs):
+    aug = default_transform(prob=prob, **kwargs)
     to_float = A.ToFloat()
     from_float = A.FromFloat(dtype="uint8")
 

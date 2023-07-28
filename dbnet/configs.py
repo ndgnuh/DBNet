@@ -173,7 +173,7 @@ class Config:
         default=1.5,
     )
 
-    # Training config
+    # Data config
     train_data: Optional[str] = config_field(
         """
         Path to training data lmdb directory.
@@ -208,21 +208,93 @@ class Config:
         default=None,
     )
 
-    training_lr: float = 7e-3
-    training_total_steps: int = 100_000
-    training_batch_size: int = 1
-    training_num_workers: int = 0
-    training_print_every: int = 250
-    training_augment: bool = True
-    training_augment_rotation: bool = True
-    training_augment_flip: bool = False
+    # Training config
+    learning_rate: float = config_field(
+        "Training learning rate",
+        default=7e-3,
+    )
+
+    learning_rate_schedule: str = config_field(
+        """Learning rate scheduler to use. Not yet implemented.""",
+        choices=["dbnet"],
+        default="dbnet",
+    )
+
+    total_steps: int = 100_000
+    print_every: int = 250
+    validate_every: int = 1000
+    batch_size: int = 1
+    num_workers: int = 0
+
+    # Augmentation
+    augment_enabled: bool = config_field(
+        "Whether to enable data augmentation when training",
+        default=True,
+    )
+    augment_prob: float = config_field(
+        "Augmentation apply probability for each transformation",
+        default=0.3,
+    )
+    augment_rotate: bool = config_field(
+        "Whether to apply rotation augmentation",
+        default=True,
+    )
+    augment_flip: bool = config_field(
+        "Whether to apply flipping augmentation",
+        default=False,
+    )
+
+    # Storage
+    weight_path: Optional[str] = config_field(
+        """
+        Model weight load path.
+        The weight will be loaded in training mode,
+        inference mode, and while exporting to ONNX.
+        """,
+        default=None,
+    )
+
+    latest_weight_path: Optional[str] = config_field(
+        """
+        Model latest weight save path.
+        This will be used in training mode to save every n steps.
+        """,
+        default="latest.pt",
+    )
+
+    best_weight_path: Optional[str] = config_field(
+        """
+        Model best weight save path.
+        This will be used in training mode to save
+        when the evalation metric improves.
+        """,
+        default="best.pt",
+    )
+
+    onnx_path: Optional[str] = config_field(
+        """
+        Model onnx path.
+        This will be used for ONNX export and ONNX predictor.
+        """,
+        default="model.onnx",
+    )
 
     @property
     def num_classes(self) -> int:
         return len(self.classes)
 
+    def resolve(self):
+        return resolve_config(self)
+
 
 def example_config():
+    """
+    Generate an example configuration string for a Config dataclass.
+
+    Returns:
+        config_str (str):
+            The example configuration string.
+    """
     config = Config(
         image_size=[1024, 1024],
         hidden_size=256,
@@ -251,22 +323,26 @@ def resolve_config(config: Config) -> Dict:
     model_options["hidden_size"] = config.hidden_size
     model_options["num_classes"] = config.num_classes
 
+    # Augmentation
+    aug_options = {}
+    aug_options["enabled"] = config.augment_enabled
+    aug_options["prob"] = config.augment_prob
+    aug_options["rotate"] = config.augment_rotate
+    aug_options["flip"] = config.augment_flip
+
     # Training
-    train_options = {}
-    train_options["train_data"] = config.train_data
-    train_options["val_data"] = config.val_data
-    train_options["lr"] = config.training_lr
-    train_options["total_steps"] = config.training_total_steps
-    train_options["batch_size"] = config.training_batch_size
-    train_options["num_workers"] = config.training_num_workers
-    train_options["print_every"] = config.training_print_every
-    train_options["augment"] = config.training_augment
-    train_options["augment_rotation"] = config.training_augment_rotation
-    train_options["augment_flip"] = config.training_augment_flip
+    # train_options = {}
+    # train_options["train_data"] = config.train_data
+    # train_options["val_data"] = config.val_data
+    # train_options["lr"] = config.training_lr
+    # train_options["total_steps"] = config.training_total_steps
+    # train_options["batch_size"] = config.training_batch_size
+    # train_options["num_workers"] = config.training_num_workers
+    # train_options["print_every"] = config.training_print_every
 
     # Option hub
     options = {}
     options["encoding"] = encode_options
-    options["training"] = train_options
     options["model"] = model_options
+    options["augment"] = aug_options
     return options

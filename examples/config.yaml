@@ -16,7 +16,8 @@ hidden_size: 256
 #	and for reverse mapping from dataset files.
 #	The model only cares about how many class there are.
 classes:
-- text
+- dog
+- cat
 
 # backbone (str):
 #	Model backbone
@@ -82,26 +83,64 @@ val_data: examples/lmdb/val/
 #	This is used to create LMDB dataset.
 src_val_data: examples/val.txt
 
-# training_lr (float):
-training_lr: 0.007
+# learning_rate (float):
+#	Training learning rate
+learning_rate: 0.007
 
-# training_total_steps (int):
-training_total_steps: 100000
+# learning_rate_schedule (str):
+#	Learning rate scheduler to use. Not yet implemented.
+#	Supported values: dbnet
+learning_rate_schedule: dbnet
 
-# training_batch_size (int):
-training_batch_size: 1
+# total_steps (int):
+total_steps: 100000
 
-# training_num_workers (int):
-training_num_workers: 0
+# print_every (int):
+print_every: 250
 
-# training_print_every (int):
-training_print_every: 250
+# validate_every (int):
+validate_every: 1000
 
-# training_augment (bool):
-training_augment: true
+# batch_size (int):
+batch_size: 1
 
-# training_augment_rotation (bool):
-training_augment_rotation: true
+# num_workers (int):
+num_workers: 0
 
-# training_augment_flip (bool):
-training_augment_flip: false
+# augment_enabled (bool):
+#	Whether to enable data augmentation when training
+augment_enabled: true
+
+# augment_prob (float):
+#	Augmentation apply probability for each transformation
+augment_prob: 0.3
+
+# augment_rotate (bool):
+#	Whether to apply rotation augmentation
+augment_rotate: true
+
+# augment_flip (bool):
+#	Whether to apply flipping augmentation
+augment_flip: false
+
+# weight_path (typing.Optional[str]):
+#	Model weight load path.
+#	The weight will be loaded in training mode,
+#	inference mode, and while exporting to ONNX.
+weight_path: null
+
+# latest_weight_path (typing.Optional[str]):
+#	Model latest weight save path.
+#	This will be used in training mode to save every n steps.
+latest_weight_path: latest.pt
+
+# best_weight_path (typing.Optional[str]):
+#	Model best weight save path.
+#	This will be used in training mode to save
+#	when the evalation metric improves.
+best_weight_path: best.pt
+
+# onnx_path (typing.Optional[str]):
+#	Model onnx path.
+#	This will be used for ONNX export and ONNX predictor.
+onnx_path: model.onnx
