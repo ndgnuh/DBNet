@@ -12,3 +12,4 @@ albumentations
 onnx
 onnxruntime
 matplotlib
+tensorboardX

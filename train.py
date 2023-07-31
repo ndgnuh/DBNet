@@ -7,6 +7,7 @@ import yaml
 from lightning import Fabric
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from tensorboardX import SummaryWriter
 
 from dbnet.model_dbnet import DBNet
 from dbnet.training import train
@@ -68,6 +69,9 @@ def main_train(config: Config):
     print_every = config.print_every
     validate_every = config.validate_every
 
+    # Logger
+    logger = SummaryWriter()
+
     lr = config.learning_rate
     train_data = config.train_data
     val_data = config.val_data
@@ -103,6 +107,7 @@ def main_train(config: Config):
     # training loop
     pbar = tqdm(range(total_steps), "Training")
     model.train()
+    losses = []
     for step, batch in loop_loader(train_loader, total_steps):
         optimizer.zero_grad()
         images, gt_probas, gt_thresholds = batch
@@ -116,13 +121,42 @@ def main_train(config: Config):
         # Logging
         loss_ = loss.item()
         lr_ = optimizer.param_groups[0]["lr"]
+        losses.append(loss_)
         pbar.set_postfix({"loss": loss_, "lr": lr_})
         pbar.update()
+        logger.add_scalar("train/loss", loss_, step)
+        logger.add_scalar("train/lr", lr_, step)
 
         # Check pointing
         if step % print_every == 0:
             torch.save(model.state_dict(), latest_weight_path)
             tqdm.write(f"Model saved to {latest_weight_path}")
+
+            # Mean loss
+            mean_loss = sum(losses) / len(losses)
+            losses = [mean_loss]
+
+            with torch.no_grad():
+                # Image to CHW
+                images = torch.cat(list(images), dim=-2)
+
+                # GT to CHW
+                gt_probas = torch.cat(list(gt_probas), dim=-2)
+                gt_probas = torch.cat(list(gt_probas), dim=-1)
+                gt_probas = gt_probas.unsqueeze(0)
+
+                # Proba to CHW
+                proba_maps = torch.sigmoid(50 * proba_maps)
+                proba_maps = torch.cat(list(proba_maps), dim=-2)
+                proba_maps = torch.cat(list(proba_maps), dim=-1)
+                proba_maps = proba_maps.unsqueeze(0)
+
+            # Add to tensorboard
+            logger.add_scalar("train/mean-loss", mean_loss, step)
+            logger.add_image("train/inputs", images, step)
+            logger.add_image("train/pr-pmap", proba_maps, step)
+            logger.add_image("train/gt-pmap", gt_probas, step)
+            logger.flush()
 
         if step % validate_every == 0:
             warnings.warn("Validation not implemented", Warning)
