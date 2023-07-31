@@ -45,6 +45,10 @@ def compute_loss_mining(
     num_pos = torch.count_nonzero(pos)
     num_neg = torch.min(num_pos * k, torch.count_nonzero(neg))
 
+    # Negative sample
+    if num_pos == 0 or num_pos == 0:
+        return losses.mean()
+
     # Postive and negative losses
     pos_losses = torch.topk(losses[pos], k=num_pos).values
     neg_losses = torch.topk(losses[neg], k=num_neg).values
