@@ -56,7 +56,7 @@ def compute_loss_mining(
     return loss
 
 
-def dbnet_loss(
+def _dbnet_loss(
     pr_probas: Tensor,
     pr_thresholds: Tensor,
     gt_probas: Tensor,
@@ -86,4 +86,29 @@ def dbnet_loss(
     t_loss = F.l1_loss(torch.sigmoid(pr_thresholds), gt_thresholds)
 
     loss = proba_scale * p_loss + b_loss * bin_scale + t_loss * threshold_scale
+    return loss
+
+
+def dbnet_loss(
+    pr_probas: Tensor,
+    pr_thresholds: Tensor,
+    gt_probas: Tensor,
+    gt_thresholds: Tensor,
+    proba_scale: float = 5,
+    bin_scale: float = 1,
+    threshold_scale: float = 10,
+):
+    loss = 0
+    num_classes = pr_probas.shape[-3]
+    for i in range(num_classes):
+        loss = loss + _dbnet_loss(
+            pr_probas[:, i],
+            pr_thresholds[:, i],
+            gt_probas[:, i],
+            gt_thresholds[:, i],
+            proba_scale=proba_scale,
+            bin_scale=bin_scale,
+            threshold_scale=threshold_scale,
+        )
+    loss = loss / num_classes
     return loss
