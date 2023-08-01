@@ -30,7 +30,7 @@ class HiddenLayerGetter(nn.Module):
 
     @torch.no_grad()
     def get_out_channels(self):
-        inputs = torch.rand(1, 3, 768, 768)
+        inputs = torch.rand(1, 3, 2048, 2048)
         return [output.shape[1] for output in self(inputs)]
 
     def forward(self, inputs) -> List[Tensor]:
@@ -48,6 +48,7 @@ class HiddenLayerGetter(nn.Module):
 class FeaturePyramidNeck(nn.Module):
     def __init__(self, list_in_channels, out_channels):
         super().__init__()
+        assert out_channels % len(list_in_channels) == 0
         hidden_channels = out_channels // len(list_in_channels)
         self.upsample = nn.Upsample(scale_factor=2, align_corners=True, mode="bilinear")
         self.in_branch = nn.ModuleList(

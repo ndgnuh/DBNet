@@ -5,6 +5,9 @@ from torchvision import transforms as T
 
 from .losses import dbnet_loss
 from .model_fpn import backbones
+from .model_hgl import fpn_hourglass
+
+assert fpn_hourglass
 
 
 def make_head(in_channels: int, num_classes: int):

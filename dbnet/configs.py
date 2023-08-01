@@ -117,7 +117,7 @@ class Config:
         """
         Model backbone
         """,
-        choices=["mobilenet_v3_large", "mobilenet_v3_small"],
+        choices=["mobilenet_v3_large", "mobilenet_v3_small", "stacked_hourglass"],
         default="mobilenet_v3_large",
     )
 
