@@ -22,6 +22,8 @@ Then, create the training and validation dataset.
 python mk_train_data.py config.yml
 ```
 
+Optionally, fire up jupyter notebook and see the [Visualize.ipynb](https://github.com/ndgnuh/DBNet/blob/master/Visualize.ipynb) to view the data before training. These are the data that will be fed directly into the model.
+
 Finally, train the model.
 ```shell
 python train.py config.yml
