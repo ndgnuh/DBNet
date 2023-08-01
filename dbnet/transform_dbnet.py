@@ -330,16 +330,13 @@ def decode_dbnet(
     # Foreach binary maps
     for c_idx in range(C):
         # Find countour
-        bin_map = bin_maps[c_idx]
         proba_map = proba_maps[c_idx]
-        cnts, hiers = cv2.findContours(bin_map, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        proba_map = cv2.morphologyEx(proba_map, cv2.MORPH_OPEN, np.ones((5, 5)))
+        bin_map = (proba_map > threshold).astype("uint8")
+        cnts, _ = cv2.findContours(bin_map, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
         # For each contour
-        for cnt, (_, _, _, parent) in zip(cnts, hiers[0]):
-            # Only take the outer most contour
-            if parent != -1:
-                continue
-
+        for cnt in cnts:
             # Filter invalid contour
             if len(cnt) < 4:
                 continue
@@ -354,19 +351,21 @@ def decode_dbnet(
             score = 1
             warnings.warn("[TODO] implement score computation", Warning)
 
-            # Simplify the countour
-            cnt = cv2.approxPolyDP(cnt, closed=True, epsilon=length * 0.05)
-            cnt = cnt[:, 0, :].tolist()
-
             # Compute expand distance
             if expand:
                 dist = abs(area * expand_rate / length)
                 dist = min(max_distance, dist)
                 try:
+                    cnt = cnt[:, 0, :].tolist()
                     cnt = bu.offset_polygon(cnt, dist, area > 0)
+                    cnt = np.array(cnt, "float32")[:, None, :]
                 except AssertionError:
                     # Invalid polygon
                     continue
+
+            # Simplify the countour
+            cnt = cv2.approxPolyDP(cnt, closed=True, epsilon=length * 0.02)
+            cnt = cnt[:, 0, :].tolist()
 
             # Filter invalid contour
             if len(cnt) < 4:
