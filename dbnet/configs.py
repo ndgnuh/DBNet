@@ -226,7 +226,7 @@ class Config:
     total_steps: int = 100_000
     print_every: int = 250
     validate_every: int = 1000
-    batch_size: int = 1
+    batch_size: int = 2
     num_workers: int = 0
 
     # Augmentation
@@ -294,9 +294,12 @@ class Config:
         return resolve_config(self)
 
 
-def example_config():
+def example_config(**kwargs):
     """
     Generate an example configuration string for a Config dataclass.
+
+    Kwargs:
+        Custom settings for `Config`.
 
     Returns:
         config_str (str):
@@ -306,6 +309,7 @@ def example_config():
         image_size=[1024, 1024],
         hidden_size=256,
         classes=["text"],
+        **kwargs,
     )
     config_str = [
         get_config_field_str(field, getattr(config, field.name))
