@@ -27,11 +27,11 @@ def mk_train_data(
     # Load data
     root = path.dirname(lmdb_path)
     makedirs(root, exist_ok=True)
-    dataset = parse_labelme_list(src_path, class_mapping)
+    dataset, total = parse_labelme_list(src_path, class_mapping)
 
     # Encode the dataset
     def encoded_dataset():
-        for sample in tqdm(dataset, "Building dataset"):
+        for sample in tqdm(dataset, "Building dataset", total=total):
             encoded = encode_dbnet(*sample, **encode_config)
             yield encoded
 

@@ -97,18 +97,22 @@ def parse_labelme_list(
             A list mapping class indices to class names (strings).
 
     Returns:
-        List[Tuple[Image.Image, List, List]]:
-            A list of samples. Each sample is a tuple contains the image,
+        gen (Generator):
+            A geenrator that generates samples, each sample is a
+            Tuple[Image.Image, List, List], a tuple contains the image,
             object bounding boxes and the object classes.
+        total (int):
+            Total number of data samples.
     """
     root = path.dirname(index_path)
     with open(index_path) as f:
         sample_files = [line.strip() for line in f.readlines()]
         sample_files = [line for line in sample_files if len(line) > 0]
 
-    samples = []
-    for idx, sample_file in enumerate(sample_files):
-        sample_file = path.join(root, sample_file)
-        sample = parse_labelme(sample_file, class2str)
-        samples.append(sample)
-    return samples
+    def generator():
+        for idx, sample_file in enumerate(sample_files):
+            sample_file = path.join(root, sample_file)
+            sample = parse_labelme(sample_file, class2str)
+            yield sample
+
+    return generator(), len(sample_files)
